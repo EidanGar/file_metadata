@@ -1,0 +1,73 @@
+const express = require('express');
+const path = require('path');
+const app = express();
+const bodyParser = require('body-parser');
+
+app.use(bodyParser.urlencoded({ extended: false }));
+
+const middlewareLogger = (req, res, next) => {
+  console.log(`${req.method} ${req.path} - ${req.ip}`);
+  next();
+}
+
+app.post("/name", (req, res) => {
+  const { first, last } = req.body;
+  res.json({ "name": `${first} ${last}` });
+})
+
+app.use(middlewareLogger);
+
+app.get("/now", (req, res, next) => {
+  req.time = new Date().toString();
+  next();
+}, (req, res) => {
+  res.json({ "time": req.time });
+});
+
+const htmlPath = path.join(__dirname, `views/index.html`);
+app.get("/", (req, res) => res.sendFile(htmlPath));
+
+const publicPath = path.join(__dirname, "public");
+app.use("/public", express.static(publicPath));
+
+const jsonRouteHandler = (req, res) => {
+  const apiData = { "message": "Hello json" };
+  if (process.env.MESSAGE_STYLE === "uppercase") {
+    apiData.message = apiData.message.toUpperCase();
+  }
+  res.json(apiData);
+}
+
+app.get("/:word/echo", (req, res) => {
+  const { word } = req.params;
+  res.json({ "echo": word });
+});
+
+app.get("/name", (req, res) => {
+  const { first, last } = req.query;
+  res.json({ "name": `${first} ${last}` });
+})
+
+app.get("/json", jsonRouteHandler);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+module.exports = app;
